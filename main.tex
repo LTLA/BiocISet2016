@@ -1,0 +1,161 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Welcome to Overleaf --- just edit your article on the left,
+% and we'll compile it for you on the right. If you give 
+% someone the link to this page, they can edit at the same
+% time. See the help menu above for more info. Enjoy!
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% For more detailed article preparation guidelines, please see:
+% http://f1000research.com/author-guidelines
+
+\documentclass[10pt,a4paper,twocolumn]{article}
+\usepackage{f1000_styles}
+
+\begin{document}
+
+\title{Infrastructure for genomic interactions: Bioconductor classes for Hi-C, ChIA-PET and related experiments}
+
+\author[1]{Aaron Tin Long Lun}
+\affil[1]{Cancer Research UK Cambridge Institute, University of Cambridge, Li Ka Shing Centre, Robinson Way, Cambridge CB2 0RE, United Kingdom; aaron.lun@cruk.cam.ac.uk}
+\author[2]{Malcolm Perry}
+\affil[2]{MRC Clinical Sciences Centre, Faculty of Medicine, Imperial College London, Hammersmith Hospital Campus, Du Cane Road, London W12 0NN, United Kingdom}
+\author[2]{Elizabeth Ing-Simmons}
+
+\maketitle
+\thispagestyle{fancy}
+
+\begin{abstract}
+The study of genomic interactions has been greatly facilitated by techniques such as chromatin conformation capture with high-throughput sequencing (Hi-C).
+These genome-wide experiments generate large amounts of data that require careful analysis to obtain useful biological conclusions.
+However, development of the appropriate software tools is hindered by the lack of basic infrastructure to represent and manipulate genomic interaction data.
+Here, we present the \textit{InteractionSet} package that provides classes to represent genomic interactions and store their associated experimental data, along with the methods required for low-level manipulation and processing of those classes.
+The \textit{InteractionSet} package exploits existing infrastructure in the open-source Bioconductor project, while in turn being used by Bioconductor packages designed for higher-level analyses.
+For new packages, use of the functionality in \textit{InteractionSet} will simplify development, allow access to more features and improve interoperability between packages.
+\end{abstract}
+
+\clearpage
+\newcommand{\code}[1]{{\small\texttt{#1}}}
+
+\section*{Introduction}
+Techniques such as chromatin conformation capture with high-throughput sequencing (Hi-C) \cite{aiden2009comprehensive} and chromatin interaction analysis with paired-end tags (ChIA-PET) \cite{fullwood2009oestrogen} are increasingly being used to study the three-dimensional structure and organisation of the genome.
+Briefly, genomic DNA is fragmented and subjected to a ligation step during which DNA from interacting loci are ligated together.
+High-throughput paired-end sequencing of the ligation product will then identify pairs of interacting genomic regions.
+The strength of each interaction can also be quantified from the number of read pairs connecting the two interacting regions.
+This information can be used to derive biological insights regarding the role of long-range interactions in transcriptional regulation (e.g., enhancers, silencers) as well as the general organization of the genome inside the nucleus (e.g., CTCF, cohesin).
+
+The analysis of Hi-C and ChIA-PET data (and variants thereof, e.g., Capture-C) is not a trivial task, and many software packages have been developed to facilitate this process.
+Several of these packages like \textit{diffHic} \cite{lun2015diffhic} and \textit{GenomicInteractions} \cite{harmston2015genomicinteractions} are part of the open-source Bioconductor project, which aims to provide accessible tools for analyzing high-throughput genomic data with the R programming language.
+One of the strengths of the Bioconductor project is the quality and quantity of shared infrastructure available to developers \cite{huber2015orchestrating}.
+Pre-defined S4 classes such as \code{GenomicRanges} and \code{SummarizedExperiment} can be used to represent various types of genomic data and information, easing the maintenance burden for developers while also improving interoperability between packages for users.
+However, this kind of common infrastructure does not yet exist for the genomic interaction field.
+Instead, each package contains its own custom classes, which increases code redundancy and development load while reducing interoperability.
+
+Here, we describe the \textit{InteractionSet} package that provides base S4 classes for representing and manipulating genomic interaction data.
+It contains the \code{GInteractions} class, to represent pairwise interactions; the \code{InteractionSet} class, to store the associated experimental data; and the \code{ContactMatrix} class, to represent interactions in a matrix format.
+This facilitates code re-use across Bioconductor packages involved in analyzing data from Hi-C, ChIA-PET and similar experiments.
+
+\section*{Overview of available classes}
+
+\subsection*{The \code{GInteractions} class}
+Each object of the \code{GInteractions} class is designed to represent pairwise genomic interactions, i.e., between pairs of ``anchor'' regions on the genome (Figure~\ref{fig:classes}A).
+It does so by storing pairs of anchor indices that point towards a reference set of genomic coordinates (which are themselves stored in a \code{GenomicRanges} object).
+Each anchor index refers to a specific reference region, such that a pair of such indices represents a pairwise interaction between the corresponding regions.
+This design reduces memory usage as the reference coordinates need only be stored once, even if the region is involved in multiple pairwise interactions with a variety of other anchors.
+Computational work is also reduced as calculations can be quickly applied across the small set of reference regions, and the results can be retrieved for each interaction based on the anchor indices.
+In addition, the \code{GInteractions} class inherits from the \code{Vector} class in the \textit{S4Vectors} package (one of the base Bioconductor packages).
+This allows storage of metadata for each interaction and for the entire object.
+
+\begin{figure*}
+\centering
+\includegraphics[width=0.4\textwidth]{frog.jpg}
+\caption{Overview of the classes in the \textit{InteractionSet} package.
+(A) The \code{GInteractions} class represents pairwise interactions between genomic regions by storing pairs of anchor indices that refer to coordinates in a \code{GenomicRanges} object.
+(B) The \code{InteractionSet} class stores experimental data in a matrix where each row is an interaction and each column is a sample.
+(C) The \code{ContactMatrix} class represents the interaction space as a matrix, where each cell represents an interaction between the corresponding row/column regions.
+}
+\label{fig:classes}
+\end{figure*}
+
+\subsection*{The \code{InteractionSet} class}
+The \code{InteractionSet} class is designed to store experimental data for each feature (Figure~\ref{fig:classes}B).
+It inherits from the \code{SummarizedExperiment} base class, where each object of the class stores any number of matrices of the same dimensions.
+Each row of each matrix corresponds to an individual feature, while each column corresponds to an experimental sample.
+Each entry of the matrix then represents the observation for the corresponding feature in the corresponding sample.
+Different matrices can be used to store different types of data, e.g., read counts, normalized intensities.
+Here, each feature is defined as a pairwise genomic interaction (as represented by a \code{GInteractions} object that is also stored within each \code{InteractionSet} object).
+Courtesy of its inheritance, the \code{InteractionSet} class also contains fields to store metadata for each interaction, for each sample, and for the entire object.
+
+\subsection*{The \code{ContactMatrix} class}
+The \code{ContactMatrix} class is designed to represent pairwise interactions in a matrix format (Figure~\ref{fig:classes}C).
+Each row and column of the matrix represents a genomic region, such that each cell of the matrix represents an interaction between the corresponding row/column regions.
+Experimental data for that interaction can be stored in the associated cell.
+This provides a direct representation of the ``interaction space'', i.e., the two-dimensional space in which $(x, y)$ represents an interaction between $x$ and $y$.
+Like the \code{GInteractions} class, the genomic coordinates are not stored directly -- rather, the rows/columns have indices that point towards a reference set of coordinates, which reduces memory usage and computational work.
+The matrix representation itself uses classes in the \textit{Matrix} package to provide support for both dense and sparse matrices.
+The latter may be more memory-efficient, particularly for sparse areas of the interaction space.
+The \code{ContactMatrix} class is compatible with existing matrix-based classes such as those in the \textit{HiTC} package \cite{servant2012hitc}.
+
+\section*{Overview of available methods}
+
+The \textit{InteractionSet} package provides a variety of methods for manipulating objects of each class.
+Aside from the obvious getter and setters, methods are also available to convert objects to different classes in the same package (e.g., \code{GInteractions} to \code{ContactMatrix}) or to base Bioconductor classes (e.g., \code{GInteractions} to \code{GRangesList}).
+The distance between anchor regions on the linear genome can be computed for each pairwise interaction, to use in fitting a distance-dependent trend \cite{aiden2009comprehensive} for diagnostics or normalization.
+The minimum bounding box in the interaction space can also be defined for a group of interactions (Figure~\ref{fig:methods}A) to summarize the location of that group.
+
+\begin{figure*}
+\centering
+\includegraphics[width=0.4\textwidth]{frog.jpg}
+\caption{Schematic of several methods in the \textit{InteractionSet} package.
+(A) Minimum bounding boxes can be identified for groups of interactions, where $u'$, $v'$ and $w'$ belong in one group while $x'$, $y'$ and $z'$ belong in another.
+(B) One- or two-dimensional overlaps can be identified between interactions and one or two genomic intervals, respectively. Here, $x'$ and $y'$ have one-dimensional overlaps with the gene and enhancer, respectively, while $z'$ has a two-dimensional overlap with the gene \textit{and} the enhancer.
+(C) An \code{InteractionSet} contains data for pairwise interactions across the two-dimensional interaction space.
+Given a bait region, a ``cross-section'' of the data can be extracted and converted into a \code{RangedSummarizedExperiment} spanning the linear genome.
+}
+\label{fig:methods}
+\end{figure*}
+
+The \textit{InteractionSet} package supports one- or two-dimensional overlaps for its objects (Figure~\ref{fig:methods}B).
+A one-dimensional overlap is considered to be present between an interaction and a genomic interval if either anchor region of the interaction overlaps the interval.
+This can be used to identify interactions overlapping pre-defined regions of interest.
+A two-dimensional overlap is considered to be present between an interaction and two genomic intervals if one anchor region overlaps one interval and the other anchor region overlaps the other interval.
+This can be used to identify interactions linking two specific regions of interest, e.g., a gene and its enhancer.
+The same framework can be used to define two-dimensional overlaps between two interactions, based on whether the corresponding anchor regions overlap -- this can be used to relate similar interactions in different \code{GInteractions} objects or across different experiments.
+More generally, interactions can be identified that link any two regions in a set of regions of interest. 
+For example, given a set of genes, interactions between two genes can be identified; or given a set of genes and another set of enhancers, interactions linking any gene to any enhancer can be found.
+
+An \code{InteractionSet} object can also be converted to a \code{RangedSummarizedExperiment} object containing data for intervals on the linear genome (Figure~\ref{fig:methods}C).
+First, a bait region is defined as some region of interest, e.g., a target gene or enhancer.
+All interactions overlapping the bait in the \code{InteractionSet} object are identified, and the \textit{non-overlapping} anchor region in each overlapping interaction is extracted. 
+The extracted regions are used to construct a \code{RangedSummarizedExperiment} object along with the experimental data for each overlapping interaction.
+This effectively converts a Hi-C experiment into a 4C-like experiment \cite{harmston2015genomicinteractions}, where the experimental data associated with each genomic region are actually describing the interaction between that region and the bait.
+This format may be preferable when a specific region can be defined as the bait, as intervals on the linear genome are easier to interpret than interactions in two-dimensional space.
+
+\section*{Conclusions}
+The availability of common infrastructure is highly beneficial to software development by reducing redundancy and improving reliability, as more developers can check the same code;
+improving interoperability, as different packages use the same classes; and increasing the accessibility of useful features, which exist in a single package rather than being sequestered away in a variety of different packages.
+Here, we present the \textit{InteractionSet} package that implements a number of classes and methods for representing, storing and manipulating genomic interaction data from Hi-C, ChIA-PET and related experiments.
+The package is fully ensconced within the Bioconductor ecosystem, depending on a number of base packages to implement its classes (e.g., \textit{S4Vectors}, \textit{GenomicRanges}, \textit{SummarizedExperiment}) while in turn being depended on by packages for higher-level analyses (e.g., \textit{diffHic}, \textit{GenomicInteractions}).
+Indeed, for any new packages, use of the features in \textit{InteractionSet} will simplify development and improve interoperability with existing packages in the Bioconductor project.
+The \textit{InteractionSet} package itself can be obtained for R version 3.3.0 at {http://bioconductor.org/packages/InteractionSet}.
+
+\subsection*{Author contributions}
+ATLL proposed and developed the \textit{InteractionSet} package, with significant contributions from EIS and MP.
+All authors wrote and approved the manuscript.
+
+\subsection*{Competing interests}
+No competing interests were declared.
+
+\subsection*{Grant information}
+ATLL was supported by core funding from Cancer Research UK (code: SW73, awarded to John C. Marioni).
+
+\subsection*{Acknowledgements}
+We thank Annika Gable, Aleksandra Pekowska, Bernd Klaus, Michael Lawrence and Herv\'e Pag\`es for coding and feature suggestions.
+We also thank some more people for suggestions to the manuscript.
+
+\nocite{*}
+{\small\bibliographystyle{unsrt}
+\bibliography{sample}}
+
+\end{document}
