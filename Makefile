@@ -1,13 +1,13 @@
 all: main.pdf
 
-main.pdf: main.tex sample.bib methods.pdf classes.pdf
+main.pdf: main.tex sample.bib Figure1.pdf Figure2.pdf
 	pdflatex main.tex
 	bibtex main
 	pdflatex main.tex
 	pdflatex main.tex 
 
-methods.pdf: pics/methods.svg
+Figure2.pdf: pics/methods.svg
 	inkscape -D -A $@ $<
 
-classes.pdf: pics/classes.svg
+Figure1.pdf: pics/classes.svg
 	inkscape -D -A $@ $<
