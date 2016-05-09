@@ -98,7 +98,6 @@ The latter may be more memory-efficient, particularly for sparse areas of the in
 The \code{ContactMatrix} class is compatible with existing matrix-based classes such as those in the \textit{HiTC} package \cite{servant2012hitc}.
 
 \section*{Overview of available methods}
-
 The \textit{InteractionSet} package provides a variety of methods for manipulating objects of each class.
 In addition to slot accessors and modifiers, methods are available to convert objects to different classes in the same package (e.g., \code{GInteractions} to \code{ContactMatrix}) or to base Bioconductor classes (e.g., \code{GInteractions} to \code{GRangesList}).
 The distance between anchor regions on the linear genome can be computed for each pairwise interaction, to use in fitting a distance-dependent trend \cite{aiden2009comprehensive} for diagnostics or normalization.
@@ -136,6 +135,15 @@ For each overlapping interaction, the anchor region that does \textit{not} overl
 This process yields data for intervals on the linear genome, which is similar to the output of 4C experiments \cite{simonis2006nuclear} that measure the intensity of interactions between the bait and all other regions.
 The ``linearized'' format may be preferable when a specific region can be defined as the bait, as intervals on the linear genome are easier to interpret than interactions in two-dimensional space.
 
+\section*{Implementation and operation details}
+All classes and methods in the \textit{InteractionSet} package are implemented using the S4 object-orientated framework in R.
+Classes are exported to allow package developers to derive custom classes for their specific needs.
+Pre-existing Bioconductor classes and generics are used to provide a consistent interface for users.
+After loading the \textit{InteractionSet} package into an R session, instances of each class can be constructed from existing data structures, either directly (e.g., \code{GInteractions} objects from \code{GRanges} via the \code{GInteractions} constructor, or from \code{Pairs} via the \code{makeGInteractionsfromGRanges} function; \code{ContactMatrix} objects from \code{Matrix} via the \code{ContactMatrix} constructor) or in a hierarchical manner (e.g., \code{InteractionSet} objects from matrices and an \code{GInteractions} object via the \code{InteractionSet} constructor).
+The methods described above can then be applied to each instance of the class.
+While the \textit{InteractionSet} package does not have functions to directly load data from file, it can be used in conjunction with the \code{import} function in the \textit{rtracklayer} package \cite{lawrence2009rtracklayer} to import data from a range of formats including BED and BEDPE.
+Once imported, the data can be easily used to construct the various classes.
+
 \section*{Conclusions}
 The availability of common infrastructure is highly beneficial to software development by reducing redundancy and improving reliability, as more developers can check the same code;
 improving interoperability, as different packages use the same classes; and increasing the accessibility of useful features, which exist in a single package rather than being sequestered away in a variety of different packages.
@@ -143,6 +151,12 @@ Here, we present the \textit{InteractionSet} package that implements a number of
 The package is fully integrated into the Bioconductor ecosystem, depending on a number of base packages to implement its classes (e.g., \textit{S4Vectors}, \textit{GenomicRanges}, \textit{SummarizedExperiment}) while in turn being depended on by packages for higher-level analyses (e.g., \textit{diffHic}, \textit{GenomicInteractions}).
 Indeed, for any new packages, use of the features in \textit{InteractionSet} will simplify development and improve interoperability with existing packages in the Bioconductor project.
 The \textit{InteractionSet} package itself can be obtained for R version 3.3.0 at {http://bioconductor.org/packages/InteractionSet}.
+
+\section*{Software availability}
+Software and latest source code available from: \\
+{http://bioconductor.org/packages/InteractionSet}\\
+\\Archived source code as at time of publication:\\
+{http://dx.doi.org/10.5281/zenodo.51204}
 
 \subsection*{Author contributions}
 ATLL proposed and developed the \textit{InteractionSet} package, with significant contributions from MP and EI-S.
