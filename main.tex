@@ -139,10 +139,10 @@ The ``linearized'' format may be preferable when a specific region can be define
 All classes and methods in the \textit{InteractionSet} package are implemented using the S4 object-orientated framework in R.
 Classes are exported to allow package developers to derive custom classes for their specific needs.
 Pre-existing Bioconductor classes and generics are used to provide a consistent interface for users.
-After loading the \textit{InteractionSet} package into an R session, instances of each class can be constructed from existing data structures, either directly (e.g., \code{GInteractions} objects from \code{GRanges} via the \code{GInteractions} constructor, or from \code{Pairs} via the \code{makeGInteractionsfromGRanges} function; \code{ContactMatrix} objects from \code{Matrix} via the \code{ContactMatrix} constructor) or in a hierarchical manner (e.g., \code{InteractionSet} objects from matrices and an \code{GInteractions} object via the \code{InteractionSet} constructor).
+After loading the \textit{InteractionSet} package into an R session, instances of each class can be constructed from existing data structures, either directly (e.g., \code{GInteractions} objects from \code{GRanges} via the \code{GInteractions} constructor, or from \code{Pairs} via the \code{makeGInteractionsfromGRanges} function; \code{ContactMatrix} objects from \code{GRanges} and \code{Matrix} via the \code{ContactMatrix} constructor) or in a hierarchical manner (e.g., \code{InteractionSet} objects from matrices and a \code{GInteractions} object via the \code{InteractionSet} constructor).
 The methods described above can then be applied to each instance of the class.
-While the \textit{InteractionSet} package does not have functions to directly load data from file, it can be used in conjunction with the \code{import} function in the \textit{rtracklayer} package \cite{lawrence2009rtracklayer} to import data from a range of formats including BED and BEDPE.
-Once imported, the data can be easily used to construct the various classes.
+While the \textit{InteractionSet} package does not have functions to load data from file, it can be combined with the \code{import} function in the \textit{rtracklayer} package \cite{lawrence2009rtracklayer} to construct class instances after importing data from a range of formats including BED and BEDPE.
+A similar strategy can be used to export data to file.
 
 \section*{Conclusions}
 The availability of common infrastructure is highly beneficial to software development by reducing redundancy and improving reliability, as more developers can check the same code;
