@@ -137,7 +137,7 @@ This process yields data for intervals on the linear genome, which is similar to
 The ``linearized'' format may be preferable when a specific region can be defined as the bait, as intervals on the linear genome are easier to interpret than interactions in two-dimensional space.
 
 \section*{Implementation and operation details}
-All classes and methods in the \textit{InteractionSet} package are implemented using the S4 object-orientated framework in R.
+All classes and methods in the \textit{InteractionSet} package are implemented using the S4 object-orientated framework in R (version 3.3.0 or higher).
 Classes are exported to allow package developers to derive custom classes for their specific needs.
 Pre-existing Bioconductor classes and generics are used to provide a consistent interface for users.
 After loading the \textit{InteractionSet} package into an R session, instances of each class can be constructed from existing data structures, either directly (e.g., \code{GInteractions} objects from \code{GRanges} via the \code{GInteractions} constructor, or from \code{Pairs} via the \code{makeGInteractionsfromGRanges} function; \code{ContactMatrix} objects from \code{GRanges} and \code{Matrix} via the \code{ContactMatrix} constructor) or in a hierarchical manner (e.g., \code{InteractionSet} objects from matrices and a \code{GInteractions} object via the \code{InteractionSet} constructor).
