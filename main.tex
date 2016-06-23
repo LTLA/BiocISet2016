@@ -96,7 +96,7 @@ This provides a direct representation of the ``interaction space'', i.e., the tw
 Like the \code{GInteractions} class, the genomic coordinates are not stored directly -- rather, the rows/columns have indices that point towards a reference set of coordinates, which reduces memory usage and computational work.
 The matrix representation itself uses classes in the \textit{Matrix} package to provide support for both dense and sparse matrices.
 The latter may be more memory-efficient, particularly for sparse areas of the interaction space.
-The \code{ContactMatrix} class is compatible with existing matrix-based classes such as those in the \textit{HiTC} package \cite{servant2012hitc}.
+\code{ContactMatrix} instances can also be easily converted to instances of existing matrix-based classes such as those in the \textit{HiTC} package \cite{servant2012hitc}.
 
 \section*{Overview of available methods}
 The \textit{InteractionSet} package provides a variety of methods for manipulating objects of each class.
